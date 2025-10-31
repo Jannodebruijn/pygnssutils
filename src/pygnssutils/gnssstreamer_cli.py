@@ -28,12 +28,13 @@ Created on 24 Jul 2024
 :license: BSD 3-Clause
 """
 
+from pathlib import Path
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 from io import BufferedWriter, TextIOWrapper
 from queue import Queue
 from socket import create_connection, gethostbyname, socket
 from threading import Event, Thread
-from time import sleep
+from time import sleep, strftime
 from types import FunctionType
 
 from pynmeagps import SocketWrapper
@@ -253,12 +254,16 @@ def _setup_output(**kwargs):
     cliout = int(kwargs.pop("clioutput", OUTPUT_NONE))
     output = kwargs.pop("output", None)
     if cliout == OUTPUT_FILE:
-        filename = output
+        filename = Path(output)
+        # suffix filename with current timestamp to avoid overwriting
+        filename = filename.with_stem(f"{filename.stem}_{strftime('%Y%m%d%H%M%S')}")
         with open(filename, "wb") as output:
             kwargs["output"] = output
             _setup_datastream(**kwargs)
     elif cliout == OUTPUT_TEXT_FILE:
-        filename = output
+        filename = Path(output)
+        # suffix filename with current timestamp to avoid overwriting
+        filename = filename.with_stem(f"{filename.stem}_{strftime('%Y%m%d%H%M%S')}")
         with open(filename, "w", encoding="utf-8") as output:
             kwargs["output"] = output
             _setup_datastream(**kwargs)
