@@ -32,6 +32,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: GIS",
 ]
+version = "0.0.0"  # Placeholder, actual version is set dynamically
 
 dependencies = [
     "certifi>=2025.0.0",
