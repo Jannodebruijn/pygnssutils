@@ -1,0 +1,24 @@
+# Use an official Python image as the base image
+FROM python:3.13-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy the contents of the pygnssutils folder to the image
+COPY pyproject.toml README.md LICENSE  ./
+COPY src/ ./src/
+
+# Install Poetry and project dependencies (including pygnssutils)
+RUN pip install poetry==2.2 && \ 
+    poetry config virtualenvs.create false && \
+    poetry install --no-interaction --without build,test,deploy
+
+# Copy script for test server
+COPY examples/tcpserver_from_file.py ./
+
+# Set environment variables
+ENV PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1
+
+# Default command (can be overridden)
+CMD ["poetry", "run", "python", "tcpserver_from_file.py", "gnssdata.bin", "--host", "0.0.0.0", "--port", "50010", "--delay", "0.25", "-v"]
