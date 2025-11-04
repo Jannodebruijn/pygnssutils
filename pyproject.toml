@@ -1,17 +1,15 @@
-[build-system]
-requires = ["setuptools>=75.0.0", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
-
-[project]
+[tool.poetry]
 name = "pygnssutils"
-dynamic = ["version"]
-authors = [{ name = "Steve Smith", email = "semuadmin@semuconsulting.com" }]
-maintainers = [{ name = "Steve Smith", email = "semuadmin@semuconsulting.com" }]
+version = "0.0.0"
 description = "GNSS Command Line Utilities"
+authors = ["Steve Smith <semuadmin@semuconsulting.com>"]
+maintainers = ["Steve Smith <semuadmin@semuconsulting.com>"]
 license = "BSD-3-Clause"
-license-files = ["LICENSE"]
 readme = "README.md"
-requires-python = ">=3.10"
+homepage = "https://github.com/semuconsulting/pygnssutils"
+documentation = "https://www.semuconsulting.com/pygnssutils/"
+repository = "https://github.com/semuconsulting/pygnssutils"
+keywords = ["GNSS", "GPS", "utilities", "navigation"]
 classifiers = [
     "Operating System :: OS Independent",
     "Development Status :: 5 - Production/Stable",
@@ -32,56 +30,56 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-version = "0.0.0"  # Placeholder, actual version is set dynamically
+packages = [{include = "pygnssutils", from = "src"}]
 
-dependencies = [
-    "certifi>=2025.0.0",
-    "paho-mqtt>=2.1.0",
-    "pyserial>=3.5",
-    "pyspartn>=1.0.7",
-    "pyubx2>=1.2.58",
-    "pysbf2>=1.0.0",
-    "pyubxutils>=1.0.3",
-    "pyqgc>=0.1.1",
-]
+[tool.poetry.dependencies]
+python = "^3.10"
+certifi = "^2025.0.0"
+paho-mqtt = "^2.1.0"
+pyserial = "^3.5"
+pyspartn = "^1.0.7"
+pyubx2 = "^1.2.58"
+pysbf2 = "^1.0.0"
+pyubxutils = "^1.0.3"
+pyqgc = "^0.1.1"
+tb-mqtt-client = "^1.13.11"
+tb-paho-mqtt-client = "^2.1.2"
+setuptools = "^75.0.0"
+mmh3 = "^5.2.0"
 
-[project.scripts]
+[tool.poetry.group.build.dependencies]
+build = "*"
+packaging = "^24.2"
+pip = "*"
+setuptools = "^75.0.0"
+twine = "^6.1.0"
+wheel = "*"
+
+[tool.poetry.group.test.dependencies]
+awscli = "*"
+bandit = "*"
+black = "*"
+certifi = "*"
+isort = "*"
+pylint = "*"
+pytest = "*"
+pytest-cov = "*"
+Sphinx = "*"
+sphinx-rtd-theme = "*"
+
+[tool.poetry.group.deploy.dependencies]
+# Deploy group includes both build and test dependencies
+# Poetry will automatically include them since we specify the groups above
+
+[tool.poetry.scripts]
 gnssstreamer = "pygnssutils.gnssstreamer_cli:main"
 gnssserver = "pygnssutils.gnssserver_cli:main"
 gnssntripclient = "pygnssutils.gnssntripclient_cli:main"
 gnssmqttclient = "pygnssutils.gnssmqttclient_cli:main"
 
-[project.urls]
-homepage = "https://github.com/semuconsulting/pygnssutils"
-documentation = "https://www.semuconsulting.com/pygnssutils/"
-repository = "https://github.com/semuconsulting/pygnssutils"
-changelog = "https://github.com/semuconsulting/pygnssutils/blob/master/RELEASE_NOTES.md"
-
-[dependency-groups]
-build = [
-    "build",
-    "packaging>=24.2",
-    "pip",
-    "setuptools>=75.0.0",
-    "twine>=6.1.0",
-    "wheel",
-]
-test = [
-    "awscli",
-    "bandit",
-    "black",
-    "certifi",
-    "isort",
-    "pylint",
-    "pytest",
-    "pytest-cov",
-    "Sphinx",
-    "sphinx-rtd-theme",
-]
-deploy = [{ include-group = "build" }, { include-group = "test" }]
-
-[tool.setuptools.dynamic]
-version = { attr = "pygnssutils._version.__version__" }
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.black]
 target-version = ['py310']
@@ -98,7 +96,6 @@ skips = [
     "B307",
     "B311",
 ] # bind 0.0.0.0; hard coded pwd, use of eval, random gen
-
 
 [tool.pylint]
 jobs = 0
