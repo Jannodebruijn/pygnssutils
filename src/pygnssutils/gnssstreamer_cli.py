@@ -72,6 +72,7 @@ from pygnssutils.globals import (
     OUTPUT_SOCKET,
     OUTPUT_SOCKET_TLS,
     OUTPUT_TEXT_FILE,
+    OUTPUT_THINGSBOARD,
     UBXSIMULATOR,
 )
 from pygnssutils.gnssmqttclient import GNSSMQTTClient
@@ -80,6 +81,10 @@ from pygnssutils.gnssreader import ERR_LOG, SETPOLL, GNSSReader
 from pygnssutils.gnssstreamer import GNSSStreamer
 from pygnssutils.helpers import parse_url, set_common_args
 from pygnssutils.socket_server import runserver
+
+# ThingsBoard integration
+from pygnssutils.thingsboard import ThingsBoardHTTPHandler, ThingsBoardMQTTHandler
+
 
 STATUSINTERVAL = 5
 
@@ -112,6 +117,8 @@ def _do_cli_output(raw_data: bytes, formatted_data: list, outqueue: Queue, **kwa
                 output.sendall(line)
             elif isinstance(output, FunctionType):  # lambda expression
                 output(line)
+            elif isinstance(output, (ThingsBoardMQTTHandler, ThingsBoardHTTPHandler)):
+                output.send_gnss_telemetry(line)
             else:
                 print(line)
     except TypeError as err:
@@ -292,6 +299,21 @@ def _setup_output(**kwargs):
         output = eval(output)  # pylint: disable=eval-used
         kwargs["output"] = output
         _setup_datastream(**kwargs)
+    elif cliout == OUTPUT_THINGSBOARD:
+        if output.startswith("mqtt://"):
+            with ThingsBoardMQTTHandler.from_connection_string(output) as tbmqtt:
+                kwargs["output"] = tbmqtt
+                _setup_datastream(**kwargs)
+        elif output.startswith("http://"):
+            with ThingsBoardHTTPHandler.from_connection_string(output) as tbhttp:
+                kwargs["output"] = tbhttp
+                _setup_datastream(**kwargs)
+        else:
+            raise ParameterError(
+                "Invalid ThingsBoard output descriptor. "
+                "Must start with 'mqtt://' or 'http://'."
+            )
+
     else:
         kwargs["output"] = None
         _setup_datastream(**kwargs)
@@ -515,7 +537,8 @@ def main():
             f"{OUTPUT_SOCKET} = TCP socket server, "
             f"{OUTPUT_SOCKET_TLS} = TCP socket server with TLS, "
             f"{OUTPUT_HANDLER} = evaluable Python expression, "
-            f"{OUTPUT_TEXT_FILE} = text file"
+            f"{OUTPUT_TEXT_FILE} = text file, "
+            f"{OUTPUT_THINGSBOARD} = ThingsBoard via MQTT or HTTP"
         ),
         type=int,
         choices=[
@@ -526,6 +549,7 @@ def main():
             OUTPUT_SOCKET_TLS,
             OUTPUT_HANDLER,
             OUTPUT_TEXT_FILE,
+            OUTPUT_THINGSBOARD,
         ],
         default=OUTPUT_NONE,
     )
@@ -539,7 +563,10 @@ def main():
             f"If clioutput = {OUTPUT_SERIAL}, format = port@baudrate (e.g. '/dev/tty.ACM0@38400'); "
             f"If clioutput = {OUTPUT_SOCKET} or {OUTPUT_SOCKET_TLS}, "
             "format = hostip:port (e.g. '0.0.0.0:50010'); "
-            f"If clioutput = {OUTPUT_HANDLER}, format = evaluable Python expression. "
+            f"If clioutput = {OUTPUT_HANDLER}, format = evaluable Python expression; "
+            f"if clioutput = {OUTPUT_THINGSBOARD}, "
+            "MQTT format = mqtt://user:password@host:port OR mqtt://access_token@host:port, "
+            "HTTP format = http://access_token@host:port."
             "NB: gnssstreamer will have exclusive use of any serial or server port."
         ),
         default=None,
