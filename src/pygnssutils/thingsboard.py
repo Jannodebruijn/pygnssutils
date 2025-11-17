@@ -226,11 +226,11 @@ class ThingsBoardMQTTHandler(TBDeviceMqttClient):
             return
 
         ts, values = result
-        logger.debug(f"ts: {ts}, values: {values}")
 
         # NOTE: TBDeviceMqttClient.send_telemetry() expects timestamp to be UNIX timestamp
         # in milliseconds
         telemetry = {"ts": int(ts.timestamp() * 1000), "values": values}
+        logger.debug(f"MQTT Telemetry: {telemetry}")
 
         info: TBPublishInfo = self.send_telemetry(telemetry)
         if isinstance(info, TBPublishInfo):
@@ -309,7 +309,7 @@ class ThingsBoardHTTPHandler(TBHTTPDevice):
             return
 
         ts, values = result
-        logger.debug(f"ts: {ts}, values: {values}")
+        logger.debug(f"HTTP Telemetry: {{ts: {ts}, values: {values}}}")
 
         # NOTE: TBHTTPDevice.send_telemetry() expects timestamp to be datetime object
         self.send_telemetry(values, timestamp=ts, queued=True)
@@ -418,17 +418,21 @@ def get_tb_telemetry(msg: object) -> tuple[datetime, dict]:
        - ``msg`` is expected to be formatted as parsed data, returned by GNSSReader.read()
        - The returned timestamp ``ts`` is a datetime.datetime object in UTC.
     """
+    now = datetime.now(timezone.utc)
+
     # Get timestamp if available
     if hasattr(msg, "time"):
         # NOTE: current date is used if not available in message
-        date = msg.date if hasattr(msg, "date") else datetime.now(timezone.utc).date()
+        date = msg.date if hasattr(msg, "date") else now.date()
 
         # Combine NMEA time and date into UTC datetime
         ts = datetime.combine(date, msg.time, tzinfo=timezone.utc)
 
+        # Ensure ts is not later than current time
+        ts = min(ts, now)
     else:
         # Use current timestamp if no time info available
-        ts = datetime.now(timezone.utc)
+        ts = now
 
     # Get telemetry values
     status = get_status(msg)
