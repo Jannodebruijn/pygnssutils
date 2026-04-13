@@ -1,0 +1,7 @@
+poetry run python examples\tcpserver_from_file.py --port 50011 docker\test\input\gps1_filtered.log
+poetry run python examples\tcpserver_from_file.py --port 50012 docker\test\input\gps2_filtered.log
+poetry run python examples\tcpserver_from_file.py --port 50013 docker\test\input\gnssdata_filtered.bin
+
+poetry run gnssstreamer --config gnssstreamer1.conf
+poetry run gnssstreamer --config gnssstreamer2.conf
+poetry run gnssstreamer --config gnssstreamer3.conf
