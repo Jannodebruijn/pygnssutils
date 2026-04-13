@@ -8,8 +8,12 @@ WORKDIR /app
 COPY pyproject.toml README.md LICENSE  ./
 COPY src/ ./src/
 
-# Install Poetry and project dependencies (including pygnssutils)
-RUN pip install poetry==2.2 && \ 
+# Install Poetry, project dependencies, and net-tools for health checks
+# Remove apt lists to reduce image size
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends net-tools && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install poetry==2.2 && \ 
     poetry config virtualenvs.create false && \
     poetry install --no-interaction --without build,test,deploy
 
