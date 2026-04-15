@@ -88,7 +88,7 @@ OUTPUT_HANDLER = 4
 """Custom output handler"""
 OUTPUT_TEXT_FILE = 5
 """Text file output"""
-OUTPUT_THINGSBOARD = 6
+OUTPUT_THINGSBOARD = 7
 """ThingsBoard output"""
 VERBOSITY_CRITICAL = -1
 """Verbosity critical"""
